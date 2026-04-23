@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Last Word Standing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0a0f; --surface: #13131a; --surface2: #1c1c28;
+    --border: rgba(255,255,255,0.08); --accent: #f0c040; --accent2: #e06040;
+    --text: #f0eeea; --muted: #888; --green: #3fb87a; --red: #e05050;
+    --blue: #4a8cf0; --radius: 14px;
+    --font-head: 'Syne', sans-serif; --font-body: 'DM Sans', sans-serif;
+  }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-body); min-height: 100vh; overflow-x: hidden; }
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+  .logo { font-family: var(--font-head); font-size: 13px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-body); font-size: 15px; font-weight: 500; padding: 12px 28px; border-radius: 100px; border: none; cursor: pointer; transition: all 0.18s ease; text-decoration: none; }
+  .btn-primary { background: var(--accent); color: #1a1400; }
+  .btn-primary:hover { background: #ffd060; transform: translateY(-1px); }
+  .btn-secondary { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--surface2); border-color: rgba(255,255,255,0.2); }
+  .btn-ghost { background: transparent; color: var(--muted); border: none; font-size: 13px; cursor: pointer; font-family: var(--font-body); }
+  .btn-ghost:hover { color: var(--text); }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
+  input, select { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; color: var(--text); font-family: var(--font-body); font-size: 15px; padding: 11px 16px; width: 100%; outline: none; transition: border-color 0.15s; }
+  input:focus, select:focus { border-color: var(--accent); }
+  select option { background: var(--surface2); }
+  label { font-size: 13px; color: var(--muted); display: block; margin-bottom: 6px; }
+
+  /* HOME */
+  #homeScreen { align-items: center; justify-content: center; background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(240,192,64,0.06) 0%, transparent 70%); }
+  .home-inner { text-align: center; padding: 2rem; max-width: 480px; width: 100%; }
+  .home-crown { font-size: 64px; margin-bottom: 1.5rem; animation: float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  .home-title { font-family: var(--font-head); font-size: 52px; font-weight: 800; line-height: 1; margin-bottom: 0.5rem; }
+  .home-title span { color: var(--accent); }
+  .home-sub { color: var(--muted); font-size: 16px; margin-bottom: 2.5rem; line-height: 1.6; margin-top: 0.75rem; }
+  .home-buttons { display: flex; flex-direction: column; gap: 12px; }
+  .home-buttons .btn { width: 100%; font-size: 16px; padding: 14px; }
+  .home-tagline { margin-top: 2rem; font-size: 12px; color: var(--muted); letter-spacing: 0.05em; }
+
+  /* SETUP */
+  #setupScreen { align-items: center; }
+  .setup-inner { width: 100%; max-width: 480px; padding: 2rem; flex: 1; }
+  .setup-inner h2 { font-family: var(--font-head); font-size: 26px; font-weight: 700; margin-bottom: 2rem; }
+  .form-group { margin-bottom: 1.25rem; }
+  .players-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+  .player-entry { display: flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px; }
+  .player-num { font-size: 11px; color: var(--muted); font-weight: 500; min-width: 18px; }
+  .player-entry input { background: transparent; border: none; padding: 0; font-size: 14px; }
+  .player-entry input:focus { border: none; outline: none; }
+  .mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .mode-card { background: var(--surface2); border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px; cursor: pointer; transition: all 0.15s; }
+  .mode-card:hover { border-color: rgba(255,255,255,0.2); }
+  .mode-card.selected { border-color: var(--accent); background: rgba(240,192,64,0.08); }
+  .mode-card-name { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+  .mode-card-desc { font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .topics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .topic-pill { background: var(--surface2); border: 1.5px solid var(--border); border-radius: 100px; padding: 8px 12px; font-size: 12px; text-align: center; cursor: pointer; transition: all 0.15s; }
+  .topic-pill:hover { border-color: rgba(255,255,255,0.2); }
+  .topic-pill.selected { border-color: var(--accent); color: var(--accent); background: rgba(240,192,64,0.08); }
+  .setup-footer { padding: 1.5rem 2rem; border-top: 1px solid var(--border); display: flex; gap: 12px; }
+  .setup-footer .btn { flex: 1; }
+  .section-label { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+
+  /* GAME */
+  #gameScreen { background: var(--bg); }
+  .game-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .game-topic { font-family: var(--font-head); font-size: 14px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; }
+  .game-round { font-size: 13px; color: var(--muted); }
+  .game-body { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 1.5rem; gap: 1.5rem; }
+  .timer-ring-wrap { position: relative; width: 140px; height: 140px; }
+  .timer-svg { transform: rotate(-90deg); }
+  .timer-bg { fill: none; stroke: var(--surface2); stroke-width: 8; }
+  .timer-arc { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 0.95s linear, stroke 0.3s; }
+  .timer-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-family: var(--font-head); font-size: 36px; font-weight: 800; }
+  .timer-label { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .current-player-card { width: 100%; max-width: 440px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; }
+  .cp-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .cp-name { font-family: var(--font-head); font-size: 28px; font-weight: 700; margin-bottom: 4px; }
+  .cp-badge { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 100px; background: rgba(240,192,64,0.12); color: var(--accent); }
+  .answer-area { width: 100%; max-width: 440px; }
+  .answer-input-wrap { position: relative; display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+  .answer-input-wrap input { font-size: 18px; padding: 14px 16px; border-radius: 12px; }
+  .voice-btn { width: 48px; height: 48px; border-radius: 12px; background: var(--surface2); border: 1px solid var(--border); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: all 0.15s; flex-shrink: 0; }
+  .voice-btn:hover { border-color: rgba(255,255,255,0.2); }
+  .voice-btn.listening { background: rgba(224,96,64,0.15); border-color: var(--accent2); animation: pulse-border 1s ease-in-out infinite; }
+  @keyframes pulse-border { 0%,100%{border-color:var(--accent2)} 50%{border-color:rgba(224,96,64,0.3)} }
+  .submit-btn { width: 100%; }
+  .voice-status { font-size: 12px; color: var(--muted); text-align: center; min-height: 16px; }
+  .autocorrect-hint { font-size: 12px; color: var(--blue); margin-top: 4px; min-height: 16px; }
+  .used-answers { width: 100%; max-width: 440px; }
+  .used-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .used-pills { display: flex; flex-wrap: wrap; gap: 6px; max-height: 80px; overflow-y: auto; }
+  .used-pill { background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; font-size: 12px; padding: 3px 10px; color: var(--muted); }
+  .players-row { width: 100%; max-width: 440px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .player-chip { display: flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 100px; padding: 5px 10px; font-size: 12px; transition: all 0.2s; }
+  .player-chip.active { border-color: var(--accent); color: var(--accent); background: rgba(240,192,64,0.08); }
+  .player-chip.eliminated { opacity: 0.3; text-decoration: line-through; }
+  .player-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+  .player-chip.active .player-dot { background: var(--accent); }
+  .player-chip.eliminated .player-dot { background: var(--red); }
+  .feedback-overlay { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.7); z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .feedback-overlay.show { opacity: 1; pointer-events: all; }
+  .feedback-box { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 2.5rem; text-align: center; max-width: 340px; width: 90%; transform: scale(0.9); transition: transform 0.2s; }
+  .feedback-overlay.show .feedback-box { transform: scale(1); }
+  .feedback-icon { font-size: 56px; margin-bottom: 1rem; }
+  .feedback-title { font-family: var(--font-head); font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  .feedback-sub { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 1.5rem; white-space: pre-line; }
+  .feedback-box .btn { width: 100%; }
+
+  /* WINNER */
+  #winnerScreen { align-items: center; justify-content: center; }
+  .winner-inner { text-align: center; padding: 2rem; max-width: 420px; }
+  .winner-trophy { font-size: 80px; margin-bottom: 1rem; animation: winner-pop 0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+  @keyframes winner-pop { from{transform:scale(0) rotate(-20deg)} to{transform:scale(1) rotate(0)} }
+  .winner-label { font-size: 12px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .winner-name { font-family: var(--font-head); font-size: 48px; font-weight: 800; color: var(--accent); margin-bottom: 1rem; }
+  .winner-stats { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.5rem; margin-bottom: 1.5rem; text-align: left; }
+  .winner-stat { display: flex; justify-content: space-between; font-size: 14px; padding: 5px 0; border-bottom: 1px solid var(--border); }
+  .winner-stat:last-child { border-bottom: none; }
+  .winner-stat-label { color: var(--muted); }
+  .winner-stat-val { font-weight: 500; }
+  .winner-buttons { display: flex; gap: 10px; }
+  .winner-buttons .btn { flex: 1; }
+  .confetti-piece { position: fixed; top: -10px; width: 10px; height: 10px; animation: confetti-fall linear forwards; pointer-events: none; z-index: 200; }
+  @keyframes confetti-fall { to { transform: translateY(110vh) rotate(720deg); opacity: 0; } }
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="homeScreen" class="screen active">
+  <div class="home-inner">
+    <div class="home-crown">👑</div>
+    <div class="home-title">Last <span>Word</span><br>Standing</div>
+    <div class="home-sub">A real-time knowledge battle. Answer fast, stay in the game. Last one standing wins.</div>
+    <div class="home-buttons">
+      <button class="btn btn-primary" onclick="goTo('setupScreen')">Start New Game</button>
+      <button class="btn btn-secondary" onclick="showRules()">How to Play</button>
+    </div>
+    <div class="home-tagline">Up to 10 players · Voice & type · Multiple modes</div>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div id="setupScreen" class="screen">
+  <div class="logo">Last Word Standing</div>
+  <div style="flex:1;overflow-y:auto;">
+    <div class="setup-inner">
+      <h2>Set Up Game</h2>
+      <div class="form-group">
+        <div class="section-label">Number of Players</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="btn btn-secondary" style="padding:8px 16px;border-radius:8px" onclick="changePlayerCount(-1)">−</button>
+          <span id="playerCountDisplay" style="font-family:var(--font-head);font-size:24px;font-weight:700;min-width:40px;text-align:center">4</span>
+          <button class="btn btn-secondary" style="padding:8px 16px;border-radius:8px" onclick="changePlayerCount(1)">+</button>
+          <span style="font-size:13px;color:var(--muted)">players</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="section-label">Player Names</div>
+        <div class="players-grid" id="playerNamesGrid"></div>
+      </div>
+      <div class="form-group">
+        <div class="section-label">Game Mode</div>
+        <div class="mode-cards">
+          <div class="mode-card selected" onclick="selectMode(this,'classic')">
+            <div class="mode-card-name">Classic</div>
+            <div class="mode-card-desc">One wrong = you're out</div>
+          </div>
+          <div class="mode-card" onclick="selectMode(this,'secondchance')">
+            <div class="mode-card-name">Second Chance</div>
+            <div class="mode-card-desc">One lifeline per player</div>
+          </div>
+          <div class="mode-card" onclick="selectMode(this,'suddendeath')">
+            <div class="mode-card-name">Sudden Death</div>
+            <div class="mode-card-desc">Timer shrinks each round</div>
+          </div>
+          <div class="mode-card" onclick="selectMode(this,'blitz')">
+            <div class="mode-card-name">Blitz</div>
+            <div class="mode-card-desc">Only 5 seconds each!</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="section-label">Topic</div>
+        <div class="topics-grid" id="topicsGrid"></div>
+      </div>
+      <div class="form-group" id="customTopicWrap" style="display:none">
+        <label>Custom Topic Name</label>
+        <input type="text" id="customTopicName" placeholder="e.g. Marvel Heroes">
+      </div>
+      <div class="form-group">
+        <div class="section-label">Timer (seconds)</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <input type="range" id="timerRange" min="5" max="30" value="15" style="flex:1;background:none;border:none;padding:0" oninput="document.getElementById('timerVal').textContent=this.value">
+          <span id="timerVal" style="font-family:var(--font-head);font-size:20px;font-weight:700;min-width:36px">15</span>
+          <span style="font-size:13px;color:var(--muted)">sec</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="setup-footer">
+    <button class="btn btn-secondary" onclick="goTo('homeScreen')">Back</button>
+    <button class="btn btn-primary" onclick="startGame()">Start Game</button>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="gameScreen" class="screen">
+  <div class="game-header">
+    <div class="game-topic" id="gameTopicLabel">Topic</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="game-round" id="gameRoundLabel">Round 1</div>
+      <button class="btn-ghost" onclick="confirmQuit()">Quit</button>
+    </div>
+  </div>
+  <div class="game-body">
+    <div class="players-row" id="playersRow"></div>
+    <div class="timer-ring-wrap">
+      <svg class="timer-svg" width="140" height="140" viewBox="0 0 140 140">
+        <circle class="timer-bg" cx="70" cy="70" r="58"/>
+        <circle class="timer-arc" id="timerArc" cx="70" cy="70" r="58"/>
+      </svg>
+      <div class="timer-num" id="timerNum">15</div>
+      <div class="timer-label">seconds</div>
+    </div>
+    <div class="current-player-card">
+      <div class="cp-label">Current Player</div>
+      <div class="cp-name" id="cpName">—</div>
+      <div id="cpBadge" class="cp-badge" style="display:none"></div>
+    </div>
+    <div class="answer-area">
+      <div class="answer-input-wrap">
+        <input type="text" id="answerInput" placeholder="Type your answer..." maxlength="60" onkeydown="handleKey(event)" oninput="onAnswerInput(this.value)">
+        <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()" title="Voice input">🎤</button>
+      </div>
+      <div class="autocorrect-hint" id="autocorrectHint"></div>
+      <div class="voice-status" id="voiceStatus"></div>
+      <button class="btn btn-primary submit-btn" onclick="submitAnswer()">Submit Answer</button>
+    </div>
+    <div class="used-answers">
+      <div class="used-label">Used Answers (<span id="usedCount">0</span>)</div>
+      <div class="used-pills" id="usedPills"></div>
+    </div>
+  </div>
+</div>
+
+<!-- WINNER -->
+<div id="winnerScreen" class="screen">
+  <div class="winner-inner">
+    <div class="winner-trophy">🏆</div>
+    <div class="winner-label">Last Word Standing</div>
+    <div class="winner-name" id="winnerName">—</div>
+    <div class="winner-stats" id="winnerStats"></div>
+    <div class="winner-buttons">
+      <button class="btn btn-secondary" onclick="goTo('homeScreen')">Home</button>
+      <button class="btn btn-primary" onclick="playAgain()">Play Again</button>
+    </div>
+  </div>
+</div>
+
+<!-- FEEDBACK -->
+<div class="feedback-overlay" id="feedbackOverlay">
+  <div class="feedback-box">
+    <div class="feedback-icon" id="feedbackIcon"></div>
+    <div class="feedback-title" id="feedbackTitle"></div>
+    <div class="feedback-sub" id="feedbackSub"></div>
+    <button class="btn btn-primary" id="feedbackBtn" onclick="dismissFeedback()">Continue</button>
+    <button class="btn btn-secondary" id="feedbackCancelBtn" style="width:100%;margin-top:8px;display:none" onclick="document.getElementById('feedbackOverlay').classList.remove('show')">Cancel</button>
+  </div>
+</div>
+
+<script>
+const TOPICS = [
+  { id:'capitals', label:'🌍 World Capitals', answers:['london','paris','berlin','rome','madrid','lisbon','amsterdam','brussels','vienna','bern','oslo','stockholm','copenhagen','helsinki','athens','warsaw','prague','budapest','bucharest','sofia','zagreb','sarajevo','belgrade','tirana','skopje','podgorica','valletta','nicosia','riga','vilnius','tallinn','moscow','kyiv','minsk','chisinau','washington','ottawa','mexico city','havana','nassau','kingston','port au prince','santo domingo','belmopan','guatemala city','san salvador','tegucigalpa','managua','san jose','panama city','bogota','quito','lima','brasilia','santiago','buenos aires','montevideo','asuncion','caracas','georgetown','paramaribo','la paz','sucre','beijing','tokyo','seoul','pyongyang','delhi','islamabad','kabul','tehran','baghdad','riyadh','abu dhabi','muscat','sanaa','amman','beirut','damascus','ankara','baku','tbilisi','yerevan','astana','tashkent','bishkek','ashgabat','dushanbe','colombo','dhaka','kathmandu','thimphu','naypyidaw','bangkok','vientiane','phnom penh','hanoi','kuala lumpur','singapore','jakarta','manila','dili','cairo','tunis','algiers','rabat','tripoli','khartoum','addis ababa','nairobi','kampala','kigali','dar es salaam','lusaka','harare','pretoria','windhoek','gaborone','maseru','mbabane','maputo','antananarivo','lilongwe','bujumbura','mogadishu','djibouti','asmara','juba','ndjamena','yaounde','malabo','bangui','libreville','brazzaville','kinshasa','luanda','abuja','accra','dakar','bamako','niamey','ouagadougou','lome','cotonou','monrovia','freetown','conakry','bissau','banjul','nouakchott','praia','canberra','wellington','suva','port moresby','honiara','port vila','apia','tarawa','palikir','majuro'] },
+  { id:'animals', label:'🐾 Animals', answers:['lion','tiger','elephant','giraffe','zebra','rhino','hippo','gorilla','chimpanzee','orangutan','panda','koala','kangaroo','penguin','eagle','shark','dolphin','whale','octopus','crocodile','alligator','python','cobra','jaguar','leopard','cheetah','wolf','fox','bear','deer','moose','bison','camel','llama','alpaca','sloth','anteater','armadillo','platypus','walrus','seal','otter','beaver','raccoon','skunk','porcupine','hedgehog','meerkat','mongoose','hyena','wildebeest','impala','gazelle','antelope','buffalo','yak','reindeer','caribou','polar bear','grizzly bear','peacock','flamingo','toucan','parrot','macaw','pelican','albatross','puffin','falcon','hawk','owl','crow','raven','sparrow','robin','hummingbird','ostrich','emu','condor','vulture','stork','heron','crane','swan','goose','duck','turkey','pheasant','jellyfish','starfish','seahorse','clownfish','tuna','salmon','cod','sardine','barracuda','piranha','stingray','lobster','crab','shrimp','squid','clam','oyster','mussel','snail','slug','worm','beetle','butterfly','moth','dragonfly','grasshopper','cricket','ant','bee','wasp','mosquito','fly','spider','scorpion','centipede','millipede','gecko','iguana','chameleon','tortoise','turtle','frog','toad','salamander','newt'] },
+  { id:'countries', label:'🌐 Countries', answers:['afghanistan','albania','algeria','andorra','angola','argentina','armenia','australia','austria','azerbaijan','bahamas','bahrain','bangladesh','barbados','belarus','belgium','belize','benin','bhutan','bolivia','bosnia','botswana','brazil','brunei','bulgaria','burkina faso','burundi','cambodia','cameroon','canada','chad','chile','china','colombia','comoros','congo','croatia','cuba','cyprus','czechia','denmark','djibouti','dominica','ecuador','egypt','eritrea','estonia','ethiopia','fiji','finland','france','gabon','gambia','georgia','germany','ghana','greece','grenada','guatemala','guinea','guyana','haiti','honduras','hungary','iceland','india','indonesia','iran','iraq','ireland','israel','italy','jamaica','japan','jordan','kazakhstan','kenya','kiribati','kuwait','kyrgyzstan','laos','latvia','lebanon','lesotho','liberia','libya','liechtenstein','lithuania','luxembourg','madagascar','malawi','malaysia','maldives','mali','malta','mauritania','mauritius','mexico','micronesia','moldova','monaco','mongolia','montenegro','morocco','mozambique','myanmar','namibia','nepal','netherlands','nicaragua','niger','nigeria','norway','oman','pakistan','panama','paraguay','peru','philippines','poland','portugal','qatar','romania','russia','rwanda','samoa','saudi arabia','senegal','serbia','singapore','slovakia','slovenia','somalia','spain','sudan','suriname','sweden','switzerland','syria','taiwan','tajikistan','tanzania','thailand','togo','tonga','trinidad','tunisia','turkey','turkmenistan','tuvalu','uganda','ukraine','uruguay','uzbekistan','vanuatu','venezuela','vietnam','yemen','zambia','zimbabwe'] },
+  { id:'sports', label:'⚽ Sports', answers:['football','basketball','baseball','cricket','tennis','golf','rugby','hockey','volleyball','swimming','boxing','wrestling','gymnastics','athletics','cycling','rowing','archery','fencing','judo','karate','taekwondo','badminton','squash','table tennis','handball','water polo','polo','lacrosse','softball','skiing','snowboarding','ice skating','figure skating','speed skating','bobsled','luge','curling','biathlon','triathlon','marathon','hurdles','javelin','discus','shot put','pole vault','high jump','long jump','triple jump','weightlifting','powerlifting','bodybuilding','surfing','skateboarding','rock climbing','mountaineering','paragliding','formula one','nascar','rally','snooker','darts','chess','billiards','bowling','fishing','horse racing','show jumping','sumo','mixed martial arts','kickboxing','muay thai','carom','kabaddi','squash','pickleball','padel','netball','floorball','futsal','sepak takraw'] },
+  { id:'food', label:'🍕 Food & Drinks', answers:['pizza','burger','sushi','pasta','tacos','curry','ramen','pho','paella','risotto','lasagna','biryani','kebab','falafel','hummus','shawarma','croissant','baguette','pretzel','bagel','pancake','waffle','omelette','frittata','quiche','bruschetta','gazpacho','borscht','clam chowder','minestrone','tom yum','miso soup','dumplings','spring rolls','samosa','pakora','tempura','gyoza','momos','pierogi','gnocchi','ravioli','tortellini','fettuccine','spaghetti','linguine','penne','rigatoni','carbonara','bolognese','alfredo','pesto','marinara','tiramisu','baklava','churros','crepe','macaron','eclair','cheesecake','brownie','muffin','scone','apple pie','pavlova','meringue','mousse','creme brulee','coffee','espresso','latte','cappuccino','americano','mocha','chai','matcha','kombucha','lemonade','smoothie','milkshake','orange juice','mango juice','lassi','nihari','haleem','karahi','daal','chapati','naan','paratha','sambar','dosa','idli','chutney','pickle','raita','kheer','gulab jamun','jalebi','halwa','kulfi','falooda'] },
+  { id:'movies', label:'🎬 Movies', answers:['inception','interstellar','avatar','titanic','avengers','batman','superman','spiderman','ironman','thor','the matrix','terminator','alien','predator','jurassic park','star wars','indiana jones','back to the future','ghostbusters','die hard','home alone','forrest gump','the godfather','scarface','goodfellas','pulp fiction','the shawshank redemption','fight club','the silence of the lambs','memento','dark knight','joker','deadpool','wolverine','x-men','doctor strange','guardians of the galaxy','ant-man','black widow','infinity war','endgame','no way home','frozen','moana','encanto','coco','brave','ratatouille','up','wall-e','finding nemo','the lion king','the jungle book','aladdin','beauty and the beast','cinderella','sleeping beauty','snow white','tangled','toy story','cars','monsters inc','the incredibles','zootopia','inside out','soul','bohemian rhapsody','whiplash','la la land','birdman','parasite','oldboy','crouching tiger','city of god','amelie','life is beautiful','cinema paradiso','spirited away','my neighbor totoro','princess mononoke','akira','your name','demon slayer','naruto','dragon ball','one piece'] },
+  { id:'science', label:'🔬 Science', answers:['hydrogen','helium','lithium','carbon','nitrogen','oxygen','fluorine','neon','sodium','magnesium','aluminum','silicon','phosphorus','sulfur','chlorine','argon','potassium','calcium','iron','nickel','copper','zinc','silver','gold','mercury','lead','uranium','plutonium','gravity','photosynthesis','evolution','dna','rna','mitosis','meiosis','osmosis','diffusion','combustion','oxidation','reduction','electrolysis','nuclear fission','nuclear fusion','black hole','neutron star','supernova','galaxy','nebula','quasar','pulsar','asteroid','comet','meteor','eclipse','solstice','equinox','atmosphere','ionosphere','magnetosphere','plate tectonics','earthquake','volcano','tsunami','erosion','weathering','sediment','fossil','extinction','mutation','adaptation','natural selection','cell membrane','nucleus','mitochondria','ribosome','chloroplast','vacuole','endoplasmic reticulum','golgi apparatus','neuron','synapse','hormone','enzyme','protein','amino acid','carbohydrate','lipid','vitamin','mineral','antibiotic','vaccine','antibody','antigen','virus','bacteria','fungus','parasite','proton','neutron','electron','atom','molecule','compound','element','isotope','photon','quark','boson','fermion','lepton','thermodynamics','relativity','quantum mechanics','electromagnetic','radioactivity'] },
+  { id:'geography', label:'🗺️ Geography', answers:['amazon','nile','mississippi','yangtze','ganges','volga','rhine','danube','congo','niger','tigris','euphrates','mekong','indus','murray','colorado','columbia','hudson','thames','seine','elbe','oder','vistula','dnieper','don','ural','ob','yenisei','lena','amur','himalaya','andes','alps','rockies','appalachian','atlas','caucasus','carpathian','pyrenees','hindu kush','karakoram','tian shan','kilimanjaro','mount everest','k2','kangchenjunga','denali','aconcagua','mont blanc','matterhorn','elbrus','pacific','atlantic','indian','arctic','southern','mediterranean','caribbean','north sea','red sea','black sea','caspian','bering','coral sea','tasman','arabian sea','bay of bengal','gulf of mexico','english channel','strait of gibraltar','suez canal','panama canal','sahara','gobi','atacama','arabian','australian','kalahari','namib','sonoran','mojave','amazon rainforest','congo rainforest','great barrier reef','grand canyon','victoria falls','niagara falls','angel falls','iguazu falls','dead sea','lake victoria','lake superior','lake baikal','lake titicaca','caspian sea'] },
+  { id:'cricket', label:'🏏 Cricket', answers:['sachin tendulkar','virat kohli','rohit sharma','ms dhoni','sourav ganguly','rahul dravid','anil kumble','kapil dev','sunil gavaskar','yuvraj singh','harbhajan singh','zaheer khan','wasim akram','waqar younis','imran khan','javed miandad','inzamam ul haq','shahid afridi','shoaib akhtar','saeed anwar','misbah ul haq','babar azam','shaheen afridi','naseem shah','hasan ali','fakhar zaman','mohammad rizwan','brian lara','vivian richards','garfield sobers','clive lloyd','courtney walsh','curtly ambrose','joel garner','michael holding','desmond haynes','gordon greenidge','steve waugh','ricky ponting','donald bradman','shane warne','glenn mcgrath','adam gilchrist','matthew hayden','michael clarke','david warner','steve smith','pat cummins','mitchell starc','nathan lyon','alastair cook','kevin pietersen','andrew flintoff','james anderson','stuart broad','joe root','ben stokes','jonny bairstow','jos buttler','graeme swann','andrew strauss','michael vaughan','geoffrey boycott','ian botham','jack hobbs','len hutton','peter may','david gower','kumar sangakkara','mahela jayawardene','muttiah muralitharan','lasith malinga','tillakaratne dilshan','sanath jayasuriya','younis khan','asad shafiq','kamran akmal','umar akmal','danish kaneria','yasir shah','shadab khan','iftikhar ahmed','azhar ali','sarfaraz ahmed'] },
+  { id:'custom', label:'✏️ Custom Topic', answers:[] }
+];
+
+let gameState = { players:[], mode:'classic', topic:TOPICS[0], timer:15, currentPlayerIdx:0, usedAnswers:[], round:1, eliminated:[], lifelines:{}, timerInterval:null, timerLeft:15, pendingCorrection:null, _playerNames:[] };
+let selectedMode = 'classic';
+let selectedTopicId = 'capitals';
+let playerCount = 4;
+let recognition = null;
+let isListening = false;
+
+function goTo(id) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+
+function renderPlayerNames() {
+  const grid = document.getElementById('playerNamesGrid');
+  grid.innerHTML = '';
+  for (let i=0;i<playerCount;i++) {
+    const old = gameState._playerNames&&gameState._playerNames[i]?gameState._playerNames[i]:'';
+    const div = document.createElement('div'); div.className='player-entry';
+    div.innerHTML=`<span class="player-num">${i+1}</span><input type="text" placeholder="Player ${i+1}" value="${old}" maxlength="16" oninput="savePlayerName(${i},this.value)">`;
+    grid.appendChild(div);
+  }
+}
+function savePlayerName(i,v){if(!gameState._playerNames)gameState._playerNames=[];gameState._playerNames[i]=v;}
+function changePlayerCount(d){playerCount=Math.min(10,Math.max(2,playerCount+d));document.getElementById('playerCountDisplay').textContent=playerCount;renderPlayerNames();}
+function selectMode(el,mode){document.querySelectorAll('.mode-card').forEach(c=>c.classList.remove('selected'));el.classList.add('selected');selectedMode=mode;}
+
+function renderTopics() {
+  const grid=document.getElementById('topicsGrid');grid.innerHTML='';
+  TOPICS.forEach(t=>{const d=document.createElement('div');d.className='topic-pill'+(t.id===selectedTopicId?' selected':'');d.textContent=t.label;d.onclick=()=>selectTopic(d,t.id);grid.appendChild(d);});
+}
+function selectTopic(el,id){document.querySelectorAll('.topic-pill').forEach(p=>p.classList.remove('selected'));el.classList.add('selected');selectedTopicId=id;document.getElementById('customTopicWrap').style.display=id==='custom'?'block':'none';}
+
+function startGame() {
+  const names=[];
+  for(let i=0;i<playerCount;i++){const inp=document.querySelectorAll('#playerNamesGrid input')[i];names.push((inp&&inp.value.trim())?inp.value.trim():`Player ${i+1}`);}
+  let topic=TOPICS.find(t=>t.id===selectedTopicId);
+  if(selectedTopicId==='custom'){const n=document.getElementById('customTopicName').value.trim()||'Custom';topic={id:'custom',label:`✏️ ${n}`,answers:[]};}
+  const timerVal=parseInt(document.getElementById('timerRange').value);
+  const pnames=[...gameState._playerNames];
+  gameState={players:names,mode:selectedMode,topic,timer:timerVal,currentPlayerIdx:0,usedAnswers:[],round:1,eliminated:[],lifelines:{},timerInterval:null,timerLeft:timerVal,pendingCorrection:null,_playerNames:pnames};
+  names.forEach(n=>{if(selectedMode==='secondchance')gameState.lifelines[n]=1;});
+  goTo('gameScreen');renderGameScreen();startTimer();
+}
+
+function renderGameScreen() {
+  const st=gameState;
+  const active=st.players.filter(p=>!st.eliminated.includes(p));
+  if(active.length===0)return;
+  const current=active[st.currentPlayerIdx%active.length];
+  document.getElementById('gameTopicLabel').textContent=st.topic.label;
+  document.getElementById('gameRoundLabel').textContent=`Round ${st.round}`;
+  document.getElementById('cpName').textContent=current;
+  const badge=document.getElementById('cpBadge');
+  if(st.mode==='secondchance'&&st.lifelines[current]>0){badge.style.display='inline-block';badge.textContent='⭐ Has a lifeline';}else{badge.style.display='none';}
+  const row=document.getElementById('playersRow');row.innerHTML='';
+  st.players.forEach(p=>{const chip=document.createElement('div');chip.className='player-chip'+(p===current?' active':'')+(st.eliminated.includes(p)?' eliminated':'');chip.innerHTML=`<div class="player-dot"></div>${p}`;row.appendChild(chip);});
+  const pills=document.getElementById('usedPills');pills.innerHTML='';document.getElementById('usedCount').textContent=st.usedAnswers.length;
+  st.usedAnswers.slice(-20).forEach(a=>{const p=document.createElement('span');p.className='used-pill';p.textContent=a;pills.appendChild(p);});
+  document.getElementById('answerInput').value='';document.getElementById('answerInput').focus();document.getElementById('autocorrectHint').textContent='';gameState.pendingCorrection=null;
+}
+
+const CIRC=2*Math.PI*58;
+function startTimer(){
+  clearInterval(gameState.timerInterval);
+  let tmax=gameState.timer;
+  if(gameState.mode==='suddendeath')tmax=Math.max(5,gameState.timer-(gameState.round-1)*2);
+  if(gameState.mode==='blitz')tmax=5;
+  gameState.timerLeft=tmax;updateTimerUI(tmax,tmax);
+  gameState.timerInterval=setInterval(()=>{gameState.timerLeft--;updateTimerUI(gameState.timerLeft,tmax);if(gameState.timerLeft<=0){clearInterval(gameState.timerInterval);handleElimination('timeout');}},1000);
+}
+function updateTimerUI(left,max){
+  document.getElementById('timerNum').textContent=left;
+  const arc=document.getElementById('timerArc');
+  arc.style.strokeDasharray=CIRC;arc.style.strokeDashoffset=CIRC*(1-left/max);
+  arc.style.stroke=left<=5?'#e05050':left<=10?'#f0a040':'#f0c040';
+  document.getElementById('timerNum').style.color=left<=5?'#e05050':left<=10?'#f0a040':'var(--text)';
+}
+
+function levenshtein(a,b){const m=a.length,n=b.length,dp=Array.from({length:m+1},(_,i)=>Array.from({length:n+1},(_,j)=>j===0?i:0));for(let j=1;j<=n;j++)dp[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);return dp[m][n];}
+function findBestMatch(input,list){const inp=input.toLowerCase().trim();if(list.includes(inp))return{match:inp,exact:true,distance:0};let best=null,bestDist=Infinity;list.forEach(a=>{const d=levenshtein(inp,a);const threshold=Math.max(2,Math.floor(a.length*0.3));if(d<bestDist&&d<=threshold){best=a;bestDist=d;}});return best?{match:best,exact:false,distance:bestDist}:null;}
+function onAnswerInput(val){const hint=document.getElementById('autocorrectHint');if(!val.trim()||gameState.topic.answers.length===0){hint.textContent='';gameState.pendingCorrection=null;return;}const res=findBestMatch(val,gameState.topic.answers);if(res&&!res.exact&&!gameState.usedAnswers.map(a=>a.toLowerCase()).includes(res.match)){hint.textContent=`Did you mean: "${capitalize(res.match)}"? (will auto-correct on submit)`;gameState.pendingCorrection=res.match;}else if(res&&res.exact){hint.textContent=gameState.usedAnswers.map(a=>a.toLowerCase()).includes(res.match)?`"${capitalize(res.match)}" already used!`:'';gameState.pendingCorrection=res.match;}else{hint.textContent='';gameState.pendingCorrection=null;}}
+function handleKey(e){if(e.key==='Enter')submitAnswer();}
+function capitalize(s){return s?s.charAt(0).toUpperCase()+s.slice(1):s;}
+
+function submitAnswer(){
+  const inp=document.getElementById('answerInput');let val=inp.value.trim().toLowerCase();if(!val)return;
+  let normalizedAnswer=val;
+  if(gameState.topic.answers.length===0){normalizedAnswer=val;}
+  else{
+    if(gameState.pendingCorrection)normalizedAnswer=gameState.pendingCorrection;
+    else{const res=findBestMatch(val,gameState.topic.answers);if(res)normalizedAnswer=res.match;else{handleElimination('wrong',val);return;}}
+  }
+  if(gameState.usedAnswers.map(a=>a.toLowerCase()).includes(normalizedAnswer)){handleElimination('repeat',normalizedAnswer);return;}
+  clearInterval(gameState.timerInterval);stopVoice();
+  gameState.usedAnswers.push(capitalize(normalizedAnswer));nextPlayer();
+}
+
+function nextPlayer(){
+  const active=gameState.players.filter(p=>!gameState.eliminated.includes(p));
+  if(active.length<=1){endGame();return;}
+  gameState.currentPlayerIdx=(gameState.currentPlayerIdx+1)%active.length;
+  if(gameState.currentPlayerIdx===0)gameState.round++;
+  renderGameScreen();startTimer();
+}
+
+function handleElimination(reason,answer){
+  clearInterval(gameState.timerInterval);stopVoice();
+  const active=gameState.players.filter(p=>!gameState.eliminated.includes(p));
+  const current=active[gameState.currentPlayerIdx%active.length];
+  if(gameState.mode==='secondchance'&&gameState.lifelines[current]>0){
+    gameState.lifelines[current]--;
+    let msg=reason==='timeout'?"Time ran out!":reason==='repeat'?`"${capitalize(answer)}" was already used!`:`"${capitalize(answer)}" doesn't match this topic.`;
+    showFeedback('⭐',`${current} uses a lifeline!`,msg+' You get one more try.',false,()=>{renderGameScreen();startTimer();});return;
+  }
+  gameState.eliminated.push(current);
+  const remaining=gameState.players.filter(p=>!gameState.eliminated.includes(p));
+  let msg=reason==='timeout'?"Time ran out!":reason==='repeat'?`"${capitalize(answer)}" was already said!`:`"${capitalize(answer)}" isn't valid for this topic.`;
+  if(remaining.length<=1){showFeedback('💀',`${current} is out!`,msg,false,()=>endGame());return;}
+  showFeedback('💀',`${current} is eliminated!`,msg,false,()=>{
+    const newActive=gameState.players.filter(p=>!gameState.eliminated.includes(p));
+    gameState.currentPlayerIdx=gameState.currentPlayerIdx%newActive.length;
+    renderGameScreen();startTimer();
+  });
+}
+
+function endGame(){
+  clearInterval(gameState.timerInterval);stopVoice();
+  const winner=gameState.players.find(p=>!gameState.eliminated.includes(p))||gameState.players[gameState.players.length-1];
+  document.getElementById('winnerName').textContent=winner;
+  document.getElementById('winnerStats').innerHTML=`<div class="winner-stat"><span class="winner-stat-label">Topic</span><span class="winner-stat-val">${gameState.topic.label}</span></div><div class="winner-stat"><span class="winner-stat-label">Rounds played</span><span class="winner-stat-val">${gameState.round}</span></div><div class="winner-stat"><span class="winner-stat-label">Answers given</span><span class="winner-stat-val">${gameState.usedAnswers.length}</span></div><div class="winner-stat"><span class="winner-stat-label">Players eliminated</span><span class="winner-stat-val">${gameState.eliminated.length}</span></div><div class="winner-stat"><span class="winner-stat-label">Mode</span><span class="winner-stat-val">${gameState.mode}</span></div>`;
+  goTo('winnerScreen');launchConfetti();
+}
+
+function showFeedback(icon,title,sub,showCancel,callback){
+  document.getElementById('feedbackIcon').textContent=icon;document.getElementById('feedbackTitle').textContent=title;document.getElementById('feedbackSub').textContent=sub;
+  const btn=document.getElementById('feedbackBtn');btn.textContent='Continue';btn._callback=callback;
+  document.getElementById('feedbackCancelBtn').style.display=showCancel?'block':'none';
+  document.getElementById('feedbackOverlay').classList.add('show');
+}
+function dismissFeedback(){const overlay=document.getElementById('feedbackOverlay');const btn=document.getElementById('feedbackBtn');overlay.classList.remove('show');if(btn._callback){btn._callback();btn._callback=null;}}
+
+function confirmQuit(){
+  showFeedback('⚠️','Quit game?','Are you sure you want to end this game?',true,()=>{clearInterval(gameState.timerInterval);stopVoice();goTo('homeScreen');});
+  document.getElementById('feedbackBtn').textContent='Yes, Quit';
+}
+
+function showRules(){showFeedback('📋','How to Play','1. Each player takes turns naming something in the topic.\n2. You have 15 seconds to answer.\n3. No repeating answers!\n4. Wrong answer, repeat, or timeout = eliminated.\n5. Last player standing wins! 🏆',false,null);}
+
+function playAgain(){
+  const pnames=[...gameState._playerNames];const mode=gameState.mode;const topic=gameState.topic;const timer=gameState.timer;const players=[...gameState.players];
+  gameState={players,mode,topic,timer,currentPlayerIdx:0,usedAnswers:[],round:1,eliminated:[],lifelines:{},timerInterval:null,timerLeft:timer,pendingCorrection:null,_playerNames:pnames};
+  players.forEach(n=>{if(mode==='secondchance')gameState.lifelines[n]=1;});
+  goTo('gameScreen');renderGameScreen();startTimer();
+}
+
+function toggleVoice(){if(isListening)stopVoice();else startVoice();}
+function startVoice(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){document.getElementById('voiceStatus').textContent='Voice not supported in this browser.';return;}
+  recognition=new SR();recognition.lang='en-US';recognition.continuous=false;recognition.interimResults=true;
+  recognition.onstart=()=>{isListening=true;document.getElementById('voiceBtn').classList.add('listening');document.getElementById('voiceStatus').textContent='🎤 Listening...';};
+  recognition.onresult=(e)=>{const t=e.results[0][0].transcript;document.getElementById('answerInput').value=t;onAnswerInput(t);if(e.results[0].isFinal){stopVoice();setTimeout(()=>submitAnswer(),400);}};
+  recognition.onerror=()=>{stopVoice();document.getElementById('voiceStatus').textContent='Could not hear. Try again.';};
+  recognition.onend=()=>{isListening=false;document.getElementById('voiceBtn').classList.remove('listening');document.getElementById('voiceStatus').textContent='';};
+  recognition.start();
+}
+function stopVoice(){if(recognition){try{recognition.stop();}catch(e){}}isListening=false;document.getElementById('voiceBtn').classList.remove('listening');document.getElementById('voiceStatus').textContent='';}
+
+function launchConfetti(){
+  const colors=['#f0c040','#e06040','#4a8cf0','#3fb87a','#e05050','#fff'];
+  for(let i=0;i<60;i++){setTimeout(()=>{const el=document.createElement('div');el.className='confetti-piece';el.style.cssText=`left:${Math.random()*100}vw;background:${colors[Math.floor(Math.random()*colors.length)]};width:${6+Math.random()*8}px;height:${6+Math.random()*8}px;border-radius:${Math.random()>0.5?'50%':'2px'};animation-duration:${2+Math.random()*2}s;animation-delay:${Math.random()*0.5}s`;document.body.appendChild(el);setTimeout(()=>el.remove(),3000);},i*30);}
+}
+
+renderTopics();
+renderPlayerNames();
+</script>
+</body>
+</html>
